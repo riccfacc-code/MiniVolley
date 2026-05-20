@@ -1,0 +1,19 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Avvia Torneo (Vite)",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run",
+				"dev"
+			],
+			"port": 5173,
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		}
+	]
+}
