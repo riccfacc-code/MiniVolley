@@ -101,17 +101,38 @@ app.post('/api/apps/undefined/entities/Match', async (req, res) => {
 });
 
 // Aggiornamento Risultati Partita (PUT)
+// Aggiornamento Completo della Partita (PUT) - Sostituisci questo blocco
 app.put('/api/apps/undefined/entities/Match/:id', async (req, res) => {
   const { id } = req.params;
-  const { score_a, score_b, status } = req.body;
+  const { 
+    team_a_id, team_a_name, team_b_id, team_b_name, 
+    score_a, score_b, phase, category, group_name, 
+    status, field, match_order 
+  } = req.body;
+
   try {
     const result = await pool.query(
-      'UPDATE Match SET score_a = $1, score_b = $2, status = $3 WHERE match_id = $4 RETURNING *',
-      [score_a, score_b, status, id]
+      `UPDATE Match 
+       SET team_a_id = $1, team_a_name = $2, team_b_id = $3, team_b_name = $4,
+           score_a = $5, score_b = $6, phase = $7, category = $8, 
+           group_name = $9, status = $10, field = $11, match_order = $12
+       WHERE match_id = $13 
+       RETURNING *`,
+      [
+        team_a_id, team_a_name, team_b_id, team_b_name,
+        score_a ?? 0, score_b ?? 0, phase, category,
+        group_name, status, field, match_order ?? 0,
+        id
+      ]
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Partita non trovata" });
+    }
+
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("Errore durante l'update del match:", err);
     res.status(500).json({ error: err.message });
   }
 });
