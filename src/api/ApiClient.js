@@ -22,7 +22,7 @@ export default apiClient;
 // ==================================================
 
 /**
- * Traduce i campi di un singolo Match dal formato SQL Server/Postgres (database)
+ * Traduce i campi di un singolo Match dal formato Postgres (database)
  * al formato atteso dai componenti React del frontend.
  */
 const mapMatchFields = (m) => {
@@ -45,9 +45,12 @@ apiClient.interceptors.response.use(
     (response) => {
         // Estraiamo il corpo della risposta inviato dal server Express (i record del DB)
         const data = response.data;
+        
+        // Estraiamo l'URL della richiesta e lo convertiamo in minuscolo per evitare problemi di case-sensitive
+        const requestUrl = (response.config.url || '').toLowerCase();
 
         // --- GESTIONE ROTTA: MATCH ---
-        if (response.config.url.includes('/entities/Match')) {
+        if (requestUrl.includes('/match')) {
             // Se la risposta è un array (es. la lista dei match), mappiamo ogni singolo elemento
             if (Array.isArray(data)) {
                 return data.map(mapMatchFields);
@@ -57,7 +60,7 @@ apiClient.interceptors.response.use(
         }
 
         // --- GESTIONE ROTTA: TEAM ---
-        if (response.config.url.includes('/entities/Team')) {
+        if (requestUrl.includes('/team')) {
             const mapTeamFields = (t) => ({
                 ...t,
                 id: t.team_id || t.id // Assicura la presenza della chiave universale 'id' per React
@@ -70,7 +73,7 @@ apiClient.interceptors.response.use(
         }
 
         // --- GESTIONE ROTTA: ANNOUNCEMENT (AVVISI) ---
-        if (response.config.url.includes('/entities/Announcement')) {
+        if (requestUrl.includes('/announcement')) {
 
             // FIX IMPORTANTE: Se il metodo HTTP NON è una GET (quindi è una POST, PUT o DELETE),
             // il server risponde con stringhe di stato come "OK" o "Created". 
@@ -106,7 +109,7 @@ apiClient.interceptors.response.use(
         }
 
         // --- GESTIONE ROTTA: TOURNAMENT SETTINGS ---
-        if (response.config.url.includes('/entities/TournamentSettings')) {
+        if (requestUrl.includes('/tournamentsettings')) {
             
             // Se stiamo salvando o modificando (POST, PUT), non serve mappare la risposta di stato
             if (response.config.method !== 'get') {
