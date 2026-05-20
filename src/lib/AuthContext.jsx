@@ -3,50 +3,60 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // Forziamo lo stato iniziale come già loggato e pronto in locale
-    const [user, setUser] = useState({
-        id: "local-admin",
-        email: "admin@localhost",
-        name: "Amministratore Locale",
-        role: "admin"
-    });
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
-    const [isLoadingAuth, setIsLoadingAuth] = useState(false);
-    const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoadingAuth, setIsLoadingAuth] = useState(true);
     const [authError, setAuthError] = useState(null);
-    const [authChecked, setAuthChecked] = useState(true);
-    const [appPublicSettings, setAppPublicSettings] = useState({
-        id: "local",
-        public_settings: { tournament_name: "MiniVolley Locale" }
-    });
 
+    // Al caricamento, controlliamo se esiste già un token in localStorage
     useEffect(() => {
-        // In locale diciamo subito che è tutto pronto senza fare chiamate API bloccanti
-        setIsLoadingPublicSettings(false);
-        setIsLoadingAuth(false);
-        setAuthChecked(true);
+        const checkStoredAuth = () => {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                setIsAuthenticated(true);
+                setUser({ name: "Amministratore", role: "admin" });
+            }
+            setIsLoadingAuth(false);
+        };
+        checkStoredAuth();
     }, []);
 
-    const checkAppState = async () => {
-        // Mock locale per evitare crash se chiamato esplicitamente da altri componenti
-        setIsLoadingPublicSettings(false);
-        setIsLoadingAuth(false);
-        setAuthChecked(true);
+    // Funzione di Login verso il backend
+    const login = async (password) => {
+        setIsLoadingAuth(true);
+        setAuthError(null);
+        try {
+            const response = await fetch('https://minivolley-backend.onrender.com/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            if (!response.ok) throw new Error("Password errata");
+
+            const data = await response.json();
+            
+            // Salviamo il token per mantenere la sessione
+            localStorage.setItem('admin_token', data.token);
+            setIsAuthenticated(true);
+            setUser({ name: "Amministratore", role: "admin" });
+        } catch (err) {
+            setAuthError(err.message);
+            setIsAuthenticated(false);
+        } finally {
+            setIsLoadingAuth(false);
+        }
     };
 
-    const checkUserAuth = async () => {
-        setIsLoadingAuth(false);
-        setAuthChecked(true);
-    };
-
-    const logout = (shouldRedirect = true) => {
+    const logout = () => {
+        localStorage.removeItem('admin_token');
         setUser(null);
         setIsAuthenticated(false);
-        console.log("Logout simulato in locale");
     };
 
     const navigateToLogin = () => {
-        console.log("Login non necessario in modalità locale pura");
+        // Logica per gestire il redirect nel tuo router
+        console.log("Reindirizzamento alla pagina di login...");
     };
 
     return (
@@ -54,14 +64,10 @@ export const AuthProvider = ({ children }) => {
             user,
             isAuthenticated,
             isLoadingAuth,
-            isLoadingPublicSettings,
             authError,
-            appPublicSettings,
-            authChecked,
+            login,
             logout,
-            navigateToLogin,
-            checkUserAuth,
-            checkAppState
+            navigateToLogin
         }}>
             {children}
         </AuthContext.Provider>
