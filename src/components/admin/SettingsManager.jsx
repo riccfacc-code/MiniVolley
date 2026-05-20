@@ -39,7 +39,7 @@ export default function SettingsManager({ settings, onRefresh }) {
     /**
      * Valida, normalizza e invia le configurazioni correnti alle API di backend
      */
-    const handleSave = async () => {
+const handleSave = async () => {
     const data = {
         tournament_name: name.trim(),
         sub_title: subTitle.trim(),
@@ -50,21 +50,12 @@ export default function SettingsManager({ settings, onRefresh }) {
     };
 
     try {
-        // NON usare più settings.id o concatenazioni strane. 
-        // Poiché il record è unico (ID=1), puntiamo sempre a quello.
-        await Api.entities.TournamentSettings.update('1', data);
-        
-        toast.success('Impostazioni salvate');
+        // Ora chiamiamo direttamente senza passare l'id '1' o '1:1'
+        await Api.entities.TournamentSettings.update(data);
+        toast.success('Impostazioni salvate!');
         onRefresh();
     } catch (error) {
-        // Se la PUT fallisce (es. il record non esiste ancora), proviamo la POST
-        try {
-            await Api.entities.TournamentSettings.create(data);
-            toast.success('Impostazioni create');
-            onRefresh();
-        } catch (createError) {
-            toast.error("Errore nel salvataggio");
-        }
+        toast.error("Errore nel salvataggio");
     }
 };
 
