@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 222 47% 11%;
+        --foreground: 210 40% 98%;
+        --card: 217 33% 17%;
+        --card-foreground: 210 40% 98%;
+        --popover: 217 33% 17%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 25 95% 53%;
+        --primary-foreground: 222 47% 11%;
+        --secondary: 217 33% 22%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 33% 22%;
+        --muted-foreground: 215 20% 55%;
+        --accent: 47 96% 53%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 217 33% 25%;
+        --input: 217 33% 25%;
+        --ring: 25 95% 53%;
+        --chart-1: 25 95% 53%;
+        --chart-2: 47 96% 53%;
+        --chart-3: 142 71% 45%;
+        --chart-4: 199 89% 48%;
+        --chart-5: 280 65% 60%;
+        --radius: 0.75rem;
+        --font-heading: 'Bebas Neue', sans-serif;
+        --font-body: 'Inter', sans-serif;
+        --sidebar-background: 217 33% 14%;
+        --sidebar-foreground: 210 40% 98%;
+        --sidebar-primary: 25 95% 53%;
+        --sidebar-primary-foreground: 222 47% 11%;
+        --sidebar-accent: 217 33% 22%;
+        --sidebar-accent-foreground: 210 40% 98%;
+        --sidebar-border: 217 33% 25%;
+        --sidebar-ring: 25 95% 53%;
+    }
+
+    .dark {
+        --background: 222 47% 11%;
+        --foreground: 210 40% 98%;
+        --card: 217 33% 17%;
+        --card-foreground: 210 40% 98%;
+        --popover: 217 33% 17%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 25 95% 53%;
+        --primary-foreground: 222 47% 11%;
+        --secondary: 217 33% 22%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 33% 22%;
+        --muted-foreground: 215 20% 55%;
+        --accent: 47 96% 53%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 217 33% 25%;
+        --input: 217 33% 25%;
+        --ring: 25 95% 53%;
+        --chart-1: 25 95% 53%;
+        --chart-2: 47 96% 53%;
+        --chart-3: 142 71% 45%;
+        --chart-4: 199 89% 48%;
+        --chart-5: 280 65% 60%;
+        --sidebar-background: 217 33% 14%;
+        --sidebar-foreground: 210 40% 98%;
+        --sidebar-primary: 25 95% 53%;
+        --sidebar-primary-foreground: 222 47% 11%;
+        --sidebar-accent: 217 33% 22%;
+        --sidebar-accent-foreground: 210 40% 98%;
+        --sidebar-border: 217 33% 25%;
+        --sidebar-ring: 25 95% 53%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* Custom scrollbar hide for scoreboard */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
