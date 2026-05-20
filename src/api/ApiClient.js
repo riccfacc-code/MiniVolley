@@ -22,7 +22,7 @@ export default apiClient;
 // ==================================================
 
 /**
- * Traduce i campi di un singolo Match dal formato SQL Server (database)
+ * Traduce i campi di un singolo Match dal formato SQL Server/Postgres (database)
  * al formato atteso dai componenti React del frontend.
  */
 const mapMatchFields = (m) => {
@@ -72,7 +72,7 @@ apiClient.interceptors.response.use(
         // --- GESTIONE ROTTA: ANNOUNCEMENT (AVVISI) ---
         if (response.config.url.includes('/entities/Announcement')) {
 
-            // FIX IMPORTANTE: Se il metodo HTTP NON è una GET (quinto è una POST, PUT o DELETE),
+            // FIX IMPORTANTE: Se il metodo HTTP NON è una GET (quindi è una POST, PUT o DELETE),
             // il server risponde con stringhe di stato come "OK" o "Created". 
             // In questi casi restituiamo direttamente il dato senza provare a mapparlo come array.
             if (response.config.method !== 'get') {
@@ -105,12 +105,45 @@ apiClient.interceptors.response.use(
             return data.map(mapAnnouncementFields).filter(Boolean);
         }
 
-        // Per tutte le altre rotte senza logica di mapping (es. TournamentSettings) restituisce i dati grezzi
+        // --- GESTIONE ROTTA: TOURNAMENT SETTINGS ---
+        if (response.config.url.includes('/entities/TournamentSettings')) {
+            
+            // Se stiamo salvando o modificando (POST, PUT), non serve mappare la risposta di stato
+            if (response.config.method !== 'get') {
+                return data;
+            }
+
+            const mapTournamentFields = (t) => {
+                if (!t) return null;
+                return {
+                    ...t,
+                    id: t.id,
+                    // Mappatura esplicita dei campi Postgres (snake_case) verso lo stato React
+                    tournament_name: t.tournament_name,
+                    sub_title: t.sub_title,
+                    details_line1: t.details_line1,
+                    details_line2: t.details_line2,
+                    scroll_speed: t.scroll_speed,
+                    matches_per_page: t.matches_per_page,
+                    logo_url: t.logo_url
+                };
+            };
+
+            // Poiché PostgreSQL restituisce la configurazione come array di righe (es: [ { ... } ]),
+            // estraiamo il primo elemento se il componente si aspetta l'oggetto delle impostazioni diretto.
+            if (Array.isArray(data)) {
+                return data.length > 0 ? mapTournamentFields(data[0]) : null;
+            }
+
+            return mapTournamentFields(data);
+        }
+
+        // Per tutte le altre rotte senza logica di mapping restituisce i dati grezzi
         return data;
     },
     (error) => {
         // Centralizzazione degli errori di rete o del database
-        console.error('Errore chiamata API SQL Server:', error);
+        console.error('Errore chiamata API Backend:', error);
         return Promise.reject(error); // Rilancia l'errore in modo che il componente possa intercettarlo con un try/catch
     }
 );
