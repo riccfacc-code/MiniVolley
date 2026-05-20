@@ -5,13 +5,15 @@ import axios from 'axios';
 // ==================================================
 // Creiamo un'istanza personalizzata. Avendo integrato Express dentro Vite,
 // la baseURL è semplicemente '/' perché frontend e backend viaggiano sullo stesso porto.
-const apiClient = axios.create({
-    baseURL: '/',
-    timeout: 10000, // Se il server non risponde entro 10 secondi, la richiesta fallisce
-    headers: {
-        'Content-Type': 'application/json' // Dichiariamo che invieremo sempre dati in formato JSON
-    }
+const ApiClient = axios.create({
+  // SOSTITUISCI QUESTO URL CON QUELLO REALE DEL TUO WEB SERVICE DI RENDER
+  baseURL: 'https://minivolley-backend.onrender.com', 
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
+
+export default ApiClient;
 
 // ==================================================
 // --- FUNZIONI DI UTILITÀ PER IL MAPPING DEI DATI ---
