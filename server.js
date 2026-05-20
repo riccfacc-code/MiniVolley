@@ -223,6 +223,16 @@ app.post('/api/apps/undefined/entities/TournamentSettings', async (req, res) => 
   }
 });
 
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  // password definita in una variabile d'ambiente su Render
+  if (password === process.env.ADMIN_PASSWORD) {
+    res.json({ success: true, token: "admin-secret-token" });
+  } else {
+    res.status(401).json({ error: "Password errata" });
+  }
+});
+
 // --- SERVER START ---
 app.listen(port, () => {
   console.log(`Server operativo sulla porta ${port}`);
