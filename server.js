@@ -252,28 +252,34 @@ app.get('/api/apps/undefined/entities/TournamentSettings', async (req, res) => {
 app.post('/api/apps/undefined/entities/TournamentSettings', async (req, res) => {
   const s = req.body;
   const mpp = s.matches_per_page !== undefined ? s.matches_per_page : 8;
+
   try {
-    const result = await pool.query(
-      `INSERT INTO TournamentSettings (id, tournament_name, scroll_speed, logo_url, sub_title, details_line1, details_line2, matches_per_page)
-       VALUES (1, $1, $2, $3, $4, $5, $6, $7)
-       ON CONFLICT (id) DO UPDATE SET
-         tournament_name = EXCLUDED.tournament_name,
-         scroll_speed = EXCLUDED.scroll_speed,
-         logo_url = EXCLUDED.logo_url,
-         sub_title = EXCLUDED.sub_title,
-         details_line1 = EXCLUDED.details_line1,
-         details_line2 = EXCLUDED.details_line2,
-         matches_per_page = EXCLUDED.matches_per_page
-       RETURNING *`,
-      [s.tournament_name, s.scroll_speed ?? 20, s.logo_url, s.sub_title, s.details_line1, s.details_line2, mpp]
-    );
-    res.json(result.rows[0]);
+    // 1. Controlliamo se il record esiste
+    const check = await pool.query('SELECT id FROM TournamentSettings WHERE id = 1');
+
+    if (check.rows.length === 0) {
+      // 2a. Se non esiste: facciamo una INSERT
+      const insertQuery = `
+        INSERT INTO TournamentSettings (id, tournament_name, scroll_speed, logo_url, sub_title, details_line1, details_line2, matches_per_page)
+        VALUES (1, $1, $2, $3, $4, $5, $6, $7)
+        RETURNING *`;
+      const result = await pool.query(insertQuery, [s.tournament_name, s.scroll_speed ?? 20, s.logo_url, s.sub_title, s.details_line1, s.details_line2, mpp]);
+      return res.status(201).json(result.rows[0]);
+    } else {
+      // 2b. Se esiste: facciamo un UPDATE
+      const updateQuery = `
+        UPDATE TournamentSettings 
+        SET tournament_name = $1, scroll_speed = $2, logo_url = $3, sub_title = $4, details_line1 = $5, details_line2 = $6, matches_per_page = $7
+        WHERE id = 1
+        RETURNING *`;
+      const result = await pool.query(updateQuery, [s.tournament_name, s.scroll_speed ?? 20, s.logo_url, s.sub_title, s.details_line1, s.details_line2, mpp]);
+      return res.json(result.rows[0]);
+    }
   } catch (err) {
-    console.error(err);
+    console.error("Errore nel salvataggio impostazioni:", err);
     res.status(500).json({ error: err.message });
   }
 });
-
 // In produzione non serve la PUT o la DELETE distruttiva di impostazioni singole,
 // poiché la POST gestisce già l'ON CONFLICT (equivalente del MERGE locale).
 
