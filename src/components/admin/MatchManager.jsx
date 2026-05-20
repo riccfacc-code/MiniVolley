@@ -320,6 +320,11 @@ export default function MatchManager({ matches = [], teams = [], onRefresh, acti
                                         <span className="font-medium text-sm">{m.team_a_name}</span>
                                         <span className="text-muted-foreground text-xs">{m.score_a ?? '-'} - {m.score_b ?? '-'}</span>
                                         <span className="font-medium text-sm">{m.team_b_name}</span>
+                                        {m.field && (
+                                            <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
+                                                Campo {m.field}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Badge di Stato, Girone e Pulsante di Cancellazione */}
