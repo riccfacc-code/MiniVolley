@@ -137,6 +137,27 @@ app.put('/api/apps/undefined/entities/Match/:id', async (req, res) => {
   }
 });
 
+// Eliminazione di una Partita (DELETE)
+app.delete('/api/apps/undefined/entities/Match/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      'DELETE FROM Match WHERE match_id = $1 RETURNING *',
+      [id]
+    );
+
+    // Se non elimina nulla significa che l'id non esisteva a database
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Partita non trovata o già eliminata" });
+    }
+
+    res.json({ message: "Partita eliminata con successo", deleted: result.rows[0] });
+  } catch (err) {
+    console.error("Errore durante la cancellazione del match:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==========================================
 // 4. ENDPOINT TOURNAMENT SETTINGS (Impostazioni)
 // ==========================================
