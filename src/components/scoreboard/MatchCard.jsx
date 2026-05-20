@@ -30,7 +30,7 @@ export default function MatchCard({ match, index }) {
                 <div className="flex items-center gap-2">
                     {match.field && (
                         <span className="text-xs font-body font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded">
-                            Campo {match.field}
+                            CAMPO: {match.field}
                         </span>
                     )}
                 </div>

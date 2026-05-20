@@ -1,5 +1,17 @@
 const isNode = typeof window === 'undefined';
-const windowObj = isNode ? { localStorage: new Map() } : window;
+
+// Creiamo un fallback per Node che imiti esattamente l'interfaccia di Storage
+const createStorageMock = () => {
+	const map = new Map();
+	return {
+		setItem: (key, value) => map.set(key, String(value)),
+		getItem: (key) => map.get(key) || null,
+		removeItem: (key) => map.delete(key),
+		clear: () => map.clear()
+	};
+};
+
+const windowObj = isNode ? { localStorage: createStorageMock() } : window;
 const storage = windowObj.localStorage;
 
 const toSnakeCase = (str) => {
@@ -10,9 +22,10 @@ const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl =
 	if (isNode) {
 		return defaultValue;
 	}
-	const storageKey = `base44_${toSnakeCase(paramName)}`;
+	const storageKey = `Api_${toSnakeCase(paramName)}`;
 	const urlParams = new URLSearchParams(window.location.search);
 	const searchParam = urlParams.get(paramName);
+
 	if (removeFromUrl) {
 		urlParams.delete(paramName);
 		const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ""
@@ -31,23 +44,23 @@ const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl =
 	if (storedValue) {
 		return storedValue;
 	}
-	return null;
+	// Cambiato da null a undefined per coerenza con il tipo di defaultValue
+	return undefined;
 }
 
 const getAppParams = () => {
 	if (getAppParamValue("clear_access_token") === 'true') {
-		storage.removeItem('base44_access_token');
+		storage.removeItem('Api_access_token');
 		storage.removeItem('token');
 	}
 	return {
-		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
+		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_Api_APP_ID }),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
-		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
-		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }),
+		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_Api_FUNCTIONS_VERSION }),
+		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_Api_APP_BASE_URL }),
 	}
 }
-
 
 export const appParams = {
 	...getAppParams()

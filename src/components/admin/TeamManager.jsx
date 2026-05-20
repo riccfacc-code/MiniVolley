@@ -1,38 +1,49 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { Api } from '@/api/ApiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
-
-const CATEGORIES = ['S3 WHITE', 'S3 GREEN', 'S3 RED'];
 
 export default function TeamManager({ teams, onRefresh, activeCategory }) {
     const [name, setName] = useState('');
     const [group, setGroup] = useState('');
 
+    // Filtriamo le squadre in base alla categoria attiva (es. S3 WHITE)
     const filteredTeams = teams.filter(t => t.category === activeCategory);
 
     const handleAdd = async () => {
         if (!name.trim()) return;
-        await base44.entities.Team.create({
-            name: name.trim(),
-            group_name: group || undefined,
-            category: activeCategory
-        });
-        setName('');
-        toast.success('Squadra aggiunta');
-        onRefresh();
+
+        try {
+            await Api.entities.Team.create({
+                name: name.trim(),
+                group_name: group.trim() || undefined,
+                category: activeCategory
+            });
+            setName('');
+            setGroup(''); // Resetta anche il girone dopo l'inserimento
+            toast.success('Squadra aggiunta');
+            onRefresh();
+        } catch (error) {
+            console.error(error);
+            toast.error("Errore durante l'aggiunta della squadra");
+        }
     };
 
     const handleDelete = async (id) => {
-        await base44.entities.Team.delete(id);
-        toast.success('Squadra eliminata');
-        onRefresh();
+        try {
+            await Api.entities.Team.delete(id);
+            toast.success('Squadra eliminata');
+            onRefresh();
+        } catch (error) {
+            console.error(error);
+            toast.error("Errore durante l'eliminazione");
+        }
     };
 
+    // Estraiamo i gironi esistenti per la categoria attiva per suggerirli nel datalist
     const uniqueGroups = [...new Set(filteredTeams.map(t => t.group_name).filter(Boolean))].sort();
 
     return (
@@ -44,31 +55,47 @@ export default function TeamManager({ teams, onRefresh, activeCategory }) {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex gap-2">
+                    {/* INPUT NOME SQUADRA (Forzato in UPPERCASE) */}
                     <Input
-                        placeholder="Nome squadra"
+                        placeholder="NOME SQUADRA"
                         value={name}
-                        onChange={e => setName(e.target.value)}
+                        onChange={e => setName(e.target.value.toUpperCase())}
                         onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                        className="flex-1"
+                        className="flex-1 font-medium"
                     />
-                    <Input
-                        placeholder="Girone (es. A)"
-                        value={group}
-                        onChange={e => setGroup(e.target.value.toUpperCase())}
-                        className="w-28"
-                    />
+
+                    {/* INPUT GIRONE CON SUGGERIMENTI DATALIST */}
+                    <div className="relative w-32">
+                        <Input
+                            placeholder="GIRONE"
+                            value={group}
+                            onChange={e => setGroup(e.target.value.toUpperCase())}
+                            onKeyDown={e => e.key === 'Enter' && handleAdd()}
+                            list={`existing-groups-${activeCategory}`} // Aggancio alla lista id sotto
+                            className="w-full font-medium"
+                            autoComplete="off"
+                        />
+                        {/* Elenco dinamico dei gironi già presenti a DB per questa categoria */}
+                        <datalist id={`existing-groups-${activeCategory}`}>
+                            {uniqueGroups.map(g => (
+                                <option key={g} value={g}>{`Girone ${g}`}</option>
+                            ))}
+                        </datalist>
+                    </div>
+
                     <Button onClick={handleAdd} size="icon">
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
 
+                {/* Elenco Squadre Raggruppate per Girone */}
                 {uniqueGroups.map(g => (
                     <div key={g} className="space-y-1">
                         <h4 className="text-sm font-semibold text-primary">Girone {g}</h4>
                         {filteredTeams.filter(t => t.group_name === g).map(t => (
-                            <div key={t.id} className="flex items-center justify-between py-1.5 px-3 bg-secondary rounded-lg">
-                                <span className="font-medium">{t.name}</span>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}>
+                            <div key={t.team_id || t.id} className="flex items-center justify-between py-1.5 px-3 bg-secondary rounded-lg">
+                                <span className="font-medium text-sm">{t.name}</span>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(t.team_id || t.id)}>
                                     <Trash2 className="w-4 h-4 text-destructive" />
                                 </Button>
                             </div>
@@ -76,13 +103,14 @@ export default function TeamManager({ teams, onRefresh, activeCategory }) {
                     </div>
                 ))}
 
+                {/* Squadre senza girone */}
                 {filteredTeams.filter(t => !t.group_name).length > 0 && (
                     <div className="space-y-1">
                         <h4 className="text-sm font-semibold text-muted-foreground">Senza girone</h4>
                         {filteredTeams.filter(t => !t.group_name).map(t => (
-                            <div key={t.id} className="flex items-center justify-between py-1.5 px-3 bg-secondary rounded-lg">
-                                <span className="font-medium">{t.name}</span>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}>
+                            <div key={t.team_id || t.id} className="flex items-center justify-between py-1.5 px-3 bg-secondary rounded-lg">
+                                <span className="font-medium text-sm">{t.name}</span>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(t.team_id || t.id)}>
                                     <Trash2 className="w-4 h-4 text-destructive" />
                                 </Button>
                             </div>
