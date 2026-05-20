@@ -6,8 +6,7 @@ import axios from 'axios';
 // Creiamo un'istanza personalizzata. Avendo integrato Express dentro Vite,
 // la baseURL è semplicemente '/' perché frontend e backend viaggiano sullo stesso porto.
 const ApiClient = axios.create({
-  // SOSTITUISCI QUESTO URL CON QUELLO REALE DEL TUO WEB SERVICE DI RENDER
-  baseURL: 'https://minivolley-backend.onrender.com', 
+  baseURL: 'https://minivolley-backend.onrender.com', // Incolla qui il tuo URL reale di Render
   headers: {
     'Content-Type': 'application/json',
   },
