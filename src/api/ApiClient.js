@@ -162,41 +162,38 @@ export const Api = {
     entities: {
         // Gestione Squadre
         Team: {
-            list: () => apiClient.get('/api/apps/undefined/entities/Team'),
-            create: (data) => apiClient.post('/api/apps/undefined/entities/Team', data),
-            update: (id, data) => apiClient.put(`/api/apps/undefined/entities/Team/${id}`, data),
-            delete: (id) => apiClient.delete(`/api/apps/undefined/entities/Team/${id}`),
+            list: () => apiClient.get('/api/entities/Team'),
+            create: (data) => apiClient.post('/api/entities/Team', data),
+            update: (id, data) => apiClient.put(`/api/entities/Team/${id}`, data),
+            delete: (id) => apiClient.delete(`/api/entities/Team/${id}`),
             subscribe: mockSubscribe
         },
         // Gestione Partite
         Match: {
-            list: () => apiClient.get('/api/apps/undefined/entities/Match'),
-            create: (data) => apiClient.post('/api/apps/undefined/entities/Match', data),
-            update: (id, data) => apiClient.put(`/api/apps/undefined/entities/Match/${id}`, data),
-            delete: (id) => apiClient.delete(`/api/apps/undefined/entities/Match/${id}`),
+            list: () => apiClient.get('/api/entities/Match'),
+            create: (data) => apiClient.post('/api/entities/Match', data),
+            update: (id, data) => apiClient.put(`/api/entities/Match/${id}`, data),
+            delete: (id) => apiClient.delete(`/api/entities/Match/${id}`),
             subscribe: mockSubscribe
         },
         // Gestione Impostazioni Generali Torneo
         TournamentSettings: {
-            list: () => apiClient.get('/api/apps/undefined/entities/TournamentSettings'),
-            create: (data) => apiClient.post('/api/apps/undefined/entities/TournamentSettings', data),
-            update: (id, data) => apiClient.put(`/api/apps/undefined/entities/TournamentSettings/${id}`, data),
-            delete: (id) => apiClient.delete(`/api/apps/undefined/entities/TournamentSettings/${id}`),
+            list: () => apiClient.get('/api/entities/TournamentSettings'),
+            create: (data) => apiClient.post('/api/entities/TournamentSettings', data),
+            update: (id, data) => apiClient.put(`/api/entities/TournamentSettings/${id}`, data),
+            delete: (id) => apiClient.delete(`/api/entities/TournamentSettings/${id}`),
             subscribe: mockSubscribe
         },
         // Gestione Avvisi Scorrevoli (Tabellone)
         Announcement: {
-            list: () => apiClient.get('/api/apps/undefined/entities/Announcement'),
-            create: (data) => apiClient.post('/api/apps/undefined/entities/Announcement', data),
-            update: (id, data) => apiClient.put(`/api/apps/undefined/entities/Announcement/${id}`, data),
-            delete: (id) => apiClient.delete(`/api/apps/undefined/entities/Announcement/${id}`),
+            list: () => apiClient.get('/api/entities/Announcement'),
+            create: (data) => apiClient.post('/api/entities/Announcement', data),
+            update: (id, data) => apiClient.put(`/api/entities/Announcement/${id}`, data),
+            delete: (id) => apiClient.delete(`/api/entities/Announcement/${id}`),
             subscribe: mockSubscribe
         }
     },
-
-    // ==================================================
-    // --- MOCK DI AUTENTICAZIONE (FALLBACK ADM) ---
-    // ==================================================
+    
     auth: {
         me: async () => ({ id: "local-admin", name: "Amministratore Locale", role: "admin" }),
         logout: () => console.log("Logout simulato"),
