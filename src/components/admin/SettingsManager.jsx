@@ -40,33 +40,33 @@ export default function SettingsManager({ settings, onRefresh }) {
      * Valida, normalizza e invia le configurazioni correnti alle API di backend
      */
     const handleSave = async () => {
-        // COSTRUZIONE PAYLOAD: Forziamo il trim sui testi e facciamo il casting esplicito a Number per i valori numerici
-        const data = {
-            tournament_name: name.trim(),
-            sub_title: subTitle.trim(),
-            details_line1: line1.trim(),
-            details_line2: line2.trim(),
-            scroll_speed: Number(speed),
-            matches_per_page: Number(matchesPerPage) // Assicura che al DB arrivi un intero e non una stringa
-        };
+    const data = {
+        tournament_name: name.trim(),
+        sub_title: subTitle.trim(),
+        details_line1: line1.trim(),
+        details_line2: line2.trim(),
+        scroll_speed: Number(speed),
+        matches_per_page: Number(matchesPerPage)
+    };
 
+    try {
+        // NON usare più settings.id o concatenazioni strane. 
+        // Poiché il record è unico (ID=1), puntiamo sempre a quello.
+        await Api.entities.TournamentSettings.update('1', data);
+        
+        toast.success('Impostazioni salvate');
+        onRefresh();
+    } catch (error) {
+        // Se la PUT fallisce (es. il record non esiste ancora), proviamo la POST
         try {
-            // Se esiste già un ID o un record preliminare sul DB, procediamo con una UPDATE (PUT/PATCH)
-            if (settings?.id || settings?.tournament_name) {
-                // In caso di ID mancante ma record esistente, usa un ID di fallback statico (es. '1' per record singolo)
-                await Api.entities.TournamentSettings.update(settings.id || '1', data);
-            } else {
-                // Altrimenti, se è la primissima configurazione del sistema, esegue una CREATE (POST)
-                await Api.entities.TournamentSettings.create(data);
-            }
-
-            toast.success('Impostazioni salvate nel database');
-            onRefresh(); // Forza il ricaricamento dei dati nel componente padre per aggiornare lo stato globale
-        } catch (error) {
-            console.error("Errore durante il salvataggio delle impostazioni:", error);
+            await Api.entities.TournamentSettings.create(data);
+            toast.success('Impostazioni create');
+            onRefresh();
+        } catch (createError) {
             toast.error("Errore nel salvataggio");
         }
-    };
+    }
+};
 
     return (
         <Card>
