@@ -290,19 +290,14 @@ export const Api = {
 
         // Gestione Impostazioni Generali Torneo
 
-        TournamentSettings: {
-
-            list: () => apiClient.get('/api/apps/undefined/entities/TournamentSettings'),
-
-            create: (data) => apiClient.post('/api/apps/undefined/entities/TournamentSettings', data),
-
-            update: (id, data) => apiClient.put(`/api/apps/undefined/entities/TournamentSettings/${id}`, data),
-
-            delete: (id) => apiClient.delete(`/api/apps/undefined/entities/TournamentSettings/${id}`),
-
-            subscribe: mockSubscribe
-
-        },
+TournamentSettings: {
+    list: () => apiClient.get('/api/apps/undefined/entities/TournamentSettings'),
+    create: (data) => apiClient.post('/api/apps/undefined/entities/TournamentSettings', data),
+    // Rimosso l'id dalla funzione e dall'URL
+    update: (data) => apiClient.put('/api/apps/undefined/entities/TournamentSettings', data),
+    delete: () => apiClient.delete('/api/apps/undefined/entities/TournamentSettings'),
+    subscribe: mockSubscribe
+},
 
         // Gestione Avvisi Scorrevoli (Tabellone)
 
