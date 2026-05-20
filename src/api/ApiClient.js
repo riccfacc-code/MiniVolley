@@ -3,16 +3,19 @@ import axios from 'axios';
 // ==================================================
 // --- CONFIGURAZIONE ISTANZA BASE DI AXIOS ---
 // ==================================================
-// Creiamo un'istanza personalizzata. Avendo integrato Express dentro Vite,
-// la baseURL è semplicemente '/' perché frontend e backend viaggiano sullo stesso porto.
-const ApiClient = axios.create({
-  baseURL: 'https://minivolley-backend.onrender.com', // Incolla qui il tuo URL reale di Render
+// Definiamo l'istanza in minuscolo (apiClient) così da matchare perfettamente 
+// tutti gli intercettori e le chiamate dell'oggetto Api sottostanti.
+const apiClient = axios.create({
+  baseURL: 'https://minivolley-backend.onrender.com', // URL del tuo backend su Render
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-export default ApiClient;
+// Esportazione di default (manteniamo sia Maiuscolo che minuscolo per sicurezza dei componenti esterni)
+const ApiClient = apiClient;
+export { ApiClient, apiClient };
+export default apiClient;
 
 // ==================================================
 // --- FUNZIONI DI UTILITÀ PER IL MAPPING DEI DATI ---
@@ -69,7 +72,7 @@ apiClient.interceptors.response.use(
         // --- GESTIONE ROTTA: ANNOUNCEMENT (AVVISI) ---
         if (response.config.url.includes('/entities/Announcement')) {
 
-            // FIX IMPORTANTE: Se il metodo HTTP NON è una GET (quindi è una POST, PUT o DELETE),
+            // FIX IMPORTANTE: Se il metodo HTTP NON è una GET (quinto è una POST, PUT o DELETE),
             // il server risponde con stringhe di stato come "OK" o "Created". 
             // In questi casi restituiamo direttamente il dato senza provare a mapparlo come array.
             if (response.config.method !== 'get') {
@@ -115,9 +118,6 @@ apiClient.interceptors.response.use(
 // ==================================================
 // --- SIMULAZIONE SOTTOSCRIZIONE REAL-TIME ---
 // ==================================================
-// Nel codice originale c'era un sistema basato su WebSocket o server esterno.
-// Per mantenere la compatibilità con i componenti React senza generare errori,
-// simuliamo la funzione fornendo una funzione di disiscrizione finta (mock).
 const mockSubscribe = (callback) => {
     return () => console.log("Unsubscribed dal finto real-time locale");
 };
@@ -125,7 +125,6 @@ const mockSubscribe = (callback) => {
 // ==================================================
 // --- ESPORTAZIONE DELL'OGGETTO API GLOBALE ---
 // ==================================================
-// Questa struttura mappa i classici metodi CRUD per ogni tabella del database
 export const Api = {
     entities: {
         // Gestione Squadre
@@ -165,7 +164,6 @@ export const Api = {
     // ==================================================
     // --- MOCK DI AUTENTICAZIONE (FALLBACK ADM) ---
     // ==================================================
-    // Simula la presenza di una sessione amministratore attiva bypassando i controlli cloud
     auth: {
         me: async () => ({ id: "local-admin", name: "Amministratore Locale", role: "admin" }),
         logout: () => console.log("Logout simulato"),
