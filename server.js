@@ -33,12 +33,49 @@ app.get('/api/apps/undefined/entities/Announcement', async (req, res) => {
 
 app.post('/api/apps/undefined/entities/Announcement', async (req, res) => {
   const { text, icon, active, order } = req.body;
+  // Gestione booleano/numerico coerente con lo sviluppo locale
+  const isActive = active === true || active === 1 ? 1 : 0;
   try {
     const result = await pool.query(
       'INSERT INTO Announcement (text, icon, active, "order") VALUES ($1, $2, $3, $4) RETURNING *',
-      [text, icon, active ?? 1, order ?? 0]
+      [text, icon, isActive, order ?? 0]
     );
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// [PORTATO DA VITE] Aggiornamento di un Avviso (PUT)
+app.put('/api/apps/undefined/entities/Announcement/:id', async (req, res) => {
+  const { id } = req.params;
+  const { text, icon, active, order } = req.body;
+  const isActive = active === true || active === 1 ? 1 : 0;
+  try {
+    const result = await pool.query(
+      'UPDATE Announcement SET text = $1, icon = $2, active = $3, "order" = $4 WHERE id = $5 RETURNING *',
+      [text, icon, isActive, order ?? 0, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Avviso non trovato" });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Rimuove permanentemente un avviso tramite il suo ID
+app.delete('/api/apps/undefined/entities/Announcement/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM Announcement WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Avviso non trovato" });
+    }
+    res.json({ message: "Avviso eliminato con successo" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -72,6 +109,40 @@ app.post('/api/apps/undefined/entities/Team', async (req, res) => {
   }
 });
 
+// [PORTATO DA VITE] Aggiorna i dettagli di una squadra esistente tramite il suo ID (PUT)
+app.put('/api/apps/undefined/entities/Team/:id', async (req, res) => {
+  const teamId = req.params.id;
+  const { name, group_name, category, color } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE Team SET name = $1, group_name = $2, category = $3, color = $4 WHERE team_id = $5 RETURNING *',
+      [name, group_name, category, color, teamId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Squadra non trovata" });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// [PORTATO DA VITE] Elimina una squadra specifica tramite ID (DELETE)
+app.delete('/api/apps/undefined/entities/Team/:id', async (req, res) => {
+  const teamId = req.params.id;
+  try {
+    const result = await pool.query('DELETE FROM Team WHERE team_id = $1 RETURNING *', [teamId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Squadra non trovata" });
+    }
+    res.json({ message: "Squadra eliminata con successo" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==========================================
 // 3. ENDPOINT MATCH (Partite)
 // ==========================================
@@ -86,12 +157,19 @@ app.get('/api/apps/undefined/entities/Match', async (req, res) => {
 });
 
 app.post('/api/apps/undefined/entities/Match', async (req, res) => {
-  const { team_a_id, team_a_name, team_b_id, team_b_name, score_a, score_b, phase, category, group_name, status, field, match_order } = req.body;
+  const m = req.body;
+  
+  // Applica i fallback usati localmente per garantire stabilità nell'inserimento
+  const scoreA = m.score_a !== undefined ? m.score_a : m.score_home;
+  const scoreB = m.score_b !== undefined ? m.score_b : m.score_away;
+  const teamAName = m.team_a_name || m.team_home;
+  const teamBName = m.team_b_name || m.team_away;
+
   try {
     const result = await pool.query(
       `INSERT INTO Match (team_a_id, team_a_name, team_b_id, team_b_name, score_a, score_b, phase, category, group_name, status, field, match_order) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-      [team_a_id, team_a_name, team_b_id, team_b_name, score_a ?? 0, score_b ?? 0, phase, category, group_name, status, field, match_order ?? 0]
+      [m.team_a_id, teamAName, m.team_b_id, teamBName, scoreA ?? 0, scoreB ?? 0, m.phase, m.category, m.group_name, m.status, m.field, m.match_order ?? 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -100,15 +178,16 @@ app.post('/api/apps/undefined/entities/Match', async (req, res) => {
   }
 });
 
-// Aggiornamento Risultati Partita (PUT)
-// Aggiornamento Completo della Partita (PUT) - Sostituisci questo blocco
+// Aggiornamento Completo della Partita (PUT) con Fallback Integrati da locale
 app.put('/api/apps/undefined/entities/Match/:id', async (req, res) => {
   const { id } = req.params;
-  const { 
-    team_a_id, team_a_name, team_b_id, team_b_name, 
-    score_a, score_b, phase, category, group_name, 
-    status, field, match_order 
-  } = req.body;
+  const m = req.body;
+
+  // [PORTATO DA VITE] Gestione dei Fallback proprietà (score_home -> score_a, ecc.)
+  const scoreA = m.score_a !== undefined ? m.score_a : m.score_home;
+  const scoreB = m.score_b !== undefined ? m.score_b : m.score_away;
+  const teamAName = m.team_a_name || m.team_home;
+  const teamBName = m.team_b_name || m.team_away;
 
   try {
     const result = await pool.query(
@@ -119,9 +198,9 @@ app.put('/api/apps/undefined/entities/Match/:id', async (req, res) => {
        WHERE match_id = $13 
        RETURNING *`,
       [
-        team_a_id, team_a_name, team_b_id, team_b_name,
-        score_a ?? 0, score_b ?? 0, phase, category,
-        group_name, status, field, match_order ?? 0,
+        m.team_a_id, teamAName, m.team_b_id, teamBName,
+        scoreA ?? 0, scoreB ?? 0, m.phase, m.category,
+        m.group_name, m.status, m.field, m.match_order ?? 0,
         id
       ]
     );
@@ -146,7 +225,6 @@ app.delete('/api/apps/undefined/entities/Match/:id', async (req, res) => {
       [id]
     );
 
-    // Se non elimina nulla significa che l'id non esisteva a database
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Partita non trovata o già eliminata" });
     }
@@ -164,7 +242,7 @@ app.delete('/api/apps/undefined/entities/Match/:id', async (req, res) => {
 app.get('/api/apps/undefined/entities/TournamentSettings', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM TournamentSettings WHERE id = 1');
-    res.json(result.rows[0] || {});
+    res.json(result.rows[0] ? [result.rows[0]] : []); // In locale restituisci un array, manteniamo la coerenza di output
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -172,7 +250,8 @@ app.get('/api/apps/undefined/entities/TournamentSettings', async (req, res) => {
 });
 
 app.post('/api/apps/undefined/entities/TournamentSettings', async (req, res) => {
-  const { tournament_name, scroll_speed, logo_url, sub_title, details_line1, details_line2, matches_per_page } = req.body;
+  const s = req.body;
+  const mpp = s.matches_per_page !== undefined ? s.matches_per_page : 8;
   try {
     const result = await pool.query(
       `INSERT INTO TournamentSettings (id, tournament_name, scroll_speed, logo_url, sub_title, details_line1, details_line2, matches_per_page)
@@ -186,7 +265,7 @@ app.post('/api/apps/undefined/entities/TournamentSettings', async (req, res) => 
          details_line2 = EXCLUDED.details_line2,
          matches_per_page = EXCLUDED.matches_per_page
        RETURNING *`,
-      [tournament_name, scroll_speed ?? 20, logo_url, sub_title, details_line1, details_line2, matches_per_page ?? 8]
+      [s.tournament_name, s.scroll_speed ?? 20, s.logo_url, s.sub_title, s.details_line1, s.details_line2, mpp]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -194,6 +273,9 @@ app.post('/api/apps/undefined/entities/TournamentSettings', async (req, res) => 
     res.status(500).json({ error: err.message });
   }
 });
+
+// In produzione non serve la PUT o la DELETE distruttiva di impostazioni singole,
+// poiché la POST gestisce già l'ON CONFLICT (equivalente del MERGE locale).
 
 // Check di salute base
 app.get('/', (req, res) => {
