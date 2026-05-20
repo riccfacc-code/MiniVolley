@@ -282,7 +282,23 @@ app.post('/api/apps/undefined/entities/TournamentSettings', async (req, res) => 
 });
 // In produzione non serve la PUT o la DELETE distruttiva di impostazioni singole,
 // poiché la POST gestisce già l'ON CONFLICT (equivalente del MERGE locale).
-
+app.put('/api/apps/undefined/entities/TournamentSettings', async (req, res) => {
+    const s = req.body;
+    const mpp = s.matches_per_page !== undefined ? s.matches_per_page : 8;
+    try {
+        await pool.query(`
+            UPDATE TournamentSettings 
+            SET tournament_name = $1, scroll_speed = $2, logo_url = $3, 
+                sub_title = $4, details_line1 = $5, details_line2 = $6, 
+                matches_per_page = $7
+            WHERE id = 1`, 
+            [s.tournament_name, s.scroll_speed, s.logo_url, s.sub_title, s.details_line1, s.details_line2, mpp]
+        );
+        res.sendStatus(200);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
 // Check di salute base
 app.get('/', (req, res) => {
   res.send('Backend MiniVolley PostgreSQL funzionante!');
