@@ -310,38 +310,50 @@ export default function MatchManager({ matches = [], teams = [], onRefresh, acti
 
                             {/* Elenco dei singoli match della fase */}
                             {phaseMatches.map(m => (
-                                <div
-                                    key={m.match_id || m.id}
-                                    className="flex items-center justify-between py-2 px-3 bg-secondary rounded-lg cursor-pointer hover:bg-secondary/80"
-                                    onClick={() => handleEdit(m)} // Cliccando sulla riga si apre il form in modalità modifica
-                                >
-                                    {/* Visualizzazione Nomi Squadre e Punteggio Corrente */}
-                                    <div className="flex items-center gap-3">
-                                        <span className="font-medium text-sm">{m.team_a_name}</span>
-                                        <span className="text-muted-foreground text-xs">{m.score_a ?? '-'} - {m.score_b ?? '-'}</span>
-                                        <span className="font-medium text-sm">{m.team_b_name}</span>
-                                        {m.field && (
-                                            <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
-                                                Campo {m.field}
-                                            </span>
-                                        )}
-                                    </div>
+                                {/* Riga principale: Griglia con 2 colonne principali (Squadre | Info) */}
+<div
+    key={m.match_id || m.id}
+    className="grid grid-cols-[1fr_auto] items-center gap-4 py-2 px-3 bg-secondary rounded-lg cursor-pointer hover:bg-secondary/80"
+    onClick={() => handleEdit(m)}
+>
+    {/* COLONNA SINISTRA: Squadre e Punteggio */}
+    <div className="flex items-center gap-3 overflow-hidden">
+        <span className="font-medium text-sm truncate">{m.team_a_name}</span>
+        <span className="text-muted-foreground text-xs font-mono shrink-0">
+            {m.score_a ?? '-'} - {m.score_b ?? '-'}
+        </span>
+        <span className="font-medium text-sm truncate">{m.team_b_name}</span>
+    </div>
 
-                                    {/* Badge di Stato, Girone e Pulsante di Cancellazione */}
-                                    <div className="flex items-center gap-2">
-                                        {m.group_name && m.group_name !== 'NO_GROUP' && (
-                                            <Badge variant="outline" className="text-xs">Girone {m.group_name}</Badge>
-                                        )}
-                                        {statusBadge(m.status)}
+    {/* COLONNA DESTRA: Info allineate in una sotto-griglia */}
+    <div className="grid grid-cols-[80px_100px_100px_auto] items-center gap-2 text-right">
+        {/* Campo */}
+        <div className="text-center">
+            {m.field && (
+                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
+                    Campo {m.field}
+                </span>
+            )}
+        </div>
 
-                                        {/* Il pulsante richiede e.stopPropagation() per impedire al click di attivare l'handleEdit della riga */}
-                                        <Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); handleDelete(m.match_id || m.id); }}>
-                                            <Trash2 className="w-4 h-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+        {/* Girone */}
+        <div className="flex justify-end">
+            {m.group_name && m.group_name !== 'NO_GROUP' && (
+                <Badge variant="outline" className="text-[10px] w-full justify-center">Girone {m.group_name}</Badge>
+            )}
+        </div>
+
+        {/* Stato */}
+        <div className="flex justify-end">
+            {statusBadge(m.status)}
+        </div>
+
+        {/* Pulsante Elimina */}
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => { e.stopPropagation(); handleDelete(m.match_id || m.id); }}>
+            <Trash2 className="w-4 h-4 text-destructive" />
+        </Button>
+    </div>
+</div>
                     );
                 })}
 
